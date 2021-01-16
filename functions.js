@@ -9,7 +9,7 @@ const books = require("./books.json");
  * - returns undefined if no matching book is found
  ****************************************************************/
 function getBookById(bookId, books) {
-  // Your code goes here
+  return books.find((book) => book.id === bookId);
 }
 // console.log(getBookById(12, books));
 
@@ -21,7 +21,9 @@ function getBookById(bookId, books) {
  * - returns undefined if no matching author is found
  ****************************************************************/
 function getAuthorByName(authorName, authors) {
-  // Your code goes here
+  return authors.find(
+    (author) => author.name.toLowerCase() === authorName.toLowerCase()
+  );
 }
 // console.log(getAuthorByName("J.K. Rowling", authors));
 
@@ -32,7 +34,14 @@ function getAuthorByName(authorName, authors) {
  *    [{ author: <NAME>, bookCount: <NUMBER_OF_BOOKS> }]
  ****************************************************************/
 function bookCountsByAuthor(authors) {
-  // Your code goes here
+  const authBooks = [];
+  authors.forEach((auth) => {
+    authBooks.push({
+      author: auth.name,
+      bookCount: auth.books.length,
+    });
+  });
+  return authBooks;
 }
 // console.log(bookCountsByAuthor(authors));
 
@@ -46,7 +55,13 @@ function bookCountsByAuthor(authors) {
 function booksByColor(books) {
   const colors = {};
 
-  // Your code goes here
+  books.forEach((book) => {
+    if (colors[book.color] !== undefined) {
+      colors[book.color].push(book.title);
+    } else {
+      colors[book.color] = [book.title];
+    }
+  });
 
   return colors;
 }
@@ -61,7 +76,13 @@ function booksByColor(books) {
  *    ["The Hitchhikers Guide", "The Meaning of Liff"]
  ****************************************************************/
 function titlesByAuthorName(authorName, authors, books) {
-  // Your code goes here
+  const titles = [];
+  const auth = getAuthorByName(authorName, authors);
+
+  if (auth) {
+    auth.books.forEach((book) => titles.push(getBookById(book, books).title));
+    return titles;
+  } else return titles;
 }
 // console.log(titlesByAuthorName("George R.R. Martin", authors, books));
 
@@ -73,7 +94,13 @@ function titlesByAuthorName(authorName, authors, books) {
  * Note: assume there will never be a tie
  ****************************************************************/
 function mostProlificAuthor(authors) {
-  // Your code goes here
+  let mostBooksAuthor = authors[0];
+  authors.forEach((author) => {
+    if (author.books.length > mostBooksAuthor.books.length) {
+      mostBooksAuthor = author;
+    }
+  });
+  return mostBooksAuthor.name;
 }
 // console.log(mostProlificAuthor(authors));
 
@@ -101,9 +128,25 @@ function mostProlificAuthor(authors) {
  * BONUS: REMOVE DUPLICATE BOOKS
  ****************************************************************/
 function relatedBooks(bookId, authors, books) {
-  // Your code goes here
+  const bookObj = getBookById(bookId, books);
+
+  if (bookObj.authors.length === 1) {
+    return titlesByAuthorName(bookObj.authors[0].name, authors, books);
+  } else {
+    let authsBooks = [];
+    let authBooks = [];
+
+    bookObj.authors.forEach((author) => {
+      authBooks = titlesByAuthorName(author.name, authors, books);
+      authsBooks = authsBooks.concat(authBooks);
+    });
+
+    return authsBooks;
+    // bonus :
+    // return [...new Set(authsBooks)];
+  }
 }
-// console.log(relatedBooks(50, authors, books));
+console.log(relatedBooks(50, authors, books));
 
 /**************************************************************
  * friendliestAuthor(authors):
@@ -112,7 +155,21 @@ function relatedBooks(bookId, authors, books) {
  *   co-authored the greatest number of books
  ****************************************************************/
 function friendliestAuthor(authors) {
-  // Your code goes here
+  let authCount = 0;
+  let mostCoAuth = "";
+  authors.forEach((author) => {
+    let count = 0;
+    author.books.forEach((bookId) => {
+      if (getBookById(bookId, books).authors.length !== 1) {
+        count++;
+      }
+    });
+    if (count > authCount) {
+      mostCoAuth = author.name;
+      authCount = count;
+    }
+  });
+  return mostCoAuth;
 }
 // console.log(friendliestAuthor(authors));
 
